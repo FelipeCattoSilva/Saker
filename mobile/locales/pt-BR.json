@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "Permita que o Saker use a câmera para ler códigos QR.",
+    "NSLocalNetworkUsageDescription": "O Saker se conecta ao aplicativo para desktop na sua rede local (LAN).",
+    "NSMicrophoneUsageDescription": "Permita que o Saker use seu microfone para ditado por voz, transcrito neste celular ou no seu computador pareado.",
+    "NSPhotoLibraryAddUsageDescription": "Permita que o Saker salve imagens das suas sessões no app Fotos.",
+    "NSPhotoLibraryUsageDescription": "Permita que o Saker anexe fotos da sua biblioteca a uma sessão de terminal no seu desktop pareado."
+  }
+}

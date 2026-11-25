@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "Saker erlauben, die Kamera zum Scannen von QR-Codes zu verwenden.",
+    "NSLocalNetworkUsageDescription": "Saker verbindet sich über das LAN mit der Desktop-App.",
+    "NSMicrophoneUsageDescription": "Erlaube Saker, dein Mikrofon für Sprachdiktat zu verwenden. Es wird auf diesem Telefon oder auf deinem gekoppelten Computer transkribiert.",
+    "NSPhotoLibraryAddUsageDescription": "Saker erlauben, Bilder aus deinen Sitzungen in Fotos zu sichern.",
+    "NSPhotoLibraryUsageDescription": "Saker erlauben, Fotos aus der Mediathek an eine Terminal-Sitzung auf dem gekoppelten Desktop anzuhängen."
+  }
+}

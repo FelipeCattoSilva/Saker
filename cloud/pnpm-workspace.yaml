@@ -1,0 +1,12 @@
+packages:
+  - apps/*
+  - packages/*
+
+minimumReleaseAge: 4320
+engineStrict: false
+
+# pnpm 10 skipped this unlisted build script; keep the binary-only install it produced.
+allowBuilds:
+  esbuild: false
+  # relay-edge (Wrangler): the platform binary comes from an optional dependency.
+  workerd: false

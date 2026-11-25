@@ -1,0 +1,63 @@
+const fs = require('node:fs')
+const path = require('node:path')
+async function main() {
+  const targets = await (await fetch('http://127.0.0.1:9452/json/list')).json()
+  const target = targets.find(x => x.type === 'page' && x.url.includes('localhost:'))
+  if (!target) throw Error('Saker dev window not found')
+  const ws = new WebSocket(target.webSocketDebuggerUrl)
+  await new Promise((resolve,reject) => {
+    ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true})
+  })
+  const wait = ms => new Promise(r => setTimeout(r,ms))
+  let id=0
+  const pending = new Map()
+  const errors=[]
+  ws.addEventListener('message',ev=>{
+    const msg=JSON.parse(ev.data)
+    if(msg.method==='Runtime.exceptionThrown') errors.push(msg.params.exceptionDetails?.exception?.description ?? msg.params.exceptionDetails?.text)
+    if(!pending.has(msg.id))return
+    const {resolve,reject}=pending.get(msg.id);pending.delete(msg.id)
+    msg.error ? reject(Error(msg.error.message)) : resolve(msg.result)
+  })
+  const send=(method,params={})=>new Promise((resolve,reject)=>{
+    const n=++id;pending.set(n,{resolve,reject});ws.send(JSON.stringify({id:n,method,params}))
+  })
+  const ev=async expression=>{
+    const msg=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true})
+    if(msg.exceptionDetails) throw Error(msg.exceptionDetails.exception?.description || msg.exceptionDetails.text)
+    return msg.result?.value
+  }
+  await send('Runtime.enable')
+  await send('Page.enable')
+  await ev("document.querySelector('[aria-label=\"Saker Brain\"]')?.click()")
+  await wait(2500)
+  const info=await ev("(()=>{const x=document.querySelector('.saker-graph-surface'),c=x?.querySelector('canvas'); return {graph:!!x,canvas:!!c,nodes:c?.dataset.sakerGraphNodes,edges:c?.dataset.sakerGraphEdges,dimensions:c?[c.width,c.height]:null,tabs:[...document.querySelectorAll('[role=\"tab\"]')].map(n=>n.textContent)}})()")
+  console.log('GRAPH',info)
+  if(!info.graph || !info.canvas || !info.nodes) throw Error('Obsidian-style graph did not render')
+  const png=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false})
+  const out=path.join(__dirname,'../../out/saker-obsidian-graph-dev.png')
+  fs.writeFileSync(out,Buffer.from(png.data,'base64'))
+  console.log('SCREENSHOT',out)
+  await ev("document.querySelector('[aria-label=\"Graph settings\"]')?.click()")
+  await wait(300)
+  const settings=await ev("({panel:!!document.querySelector('.saker-graph-settings'),sliders:document.querySelectorAll('.saker-graph-range input').length,checks:document.querySelectorAll('.saker-graph-check input').length})")
+  console.log('SETTINGS',settings)
+  if (!settings.panel || settings.sliders!==7 || settings.checks!==4) throw Error('Graph settings missing')
+  await ev("document.querySelector('[aria-label=\"Graph settings\"]')?.click()")
+  const rect=await ev("(()=>{const r=document.querySelector('.saker-graph-surface').getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}})()")
+  const before=await ev("document.querySelector('.saker-graph-tool')?.title")
+  await ev("(()=>{const s=document.querySelector('.saker-graph-surface'),r=s.getBoundingClientRect();s.dispatchEvent(new WheelEvent('wheel',{bubbles:true,cancelable:true,deltaY:-240,clientX:r.x+r.width/2,clientY:r.y+r.height/2}));return true})()")
+  await wait(300)
+  const zoom=await ev("(()=>{const x=document.querySelector('.saker-graph-tool')?.parentElement;return x?.innerText})()")
+  console.log('ZOOM',zoom)
+  if(zoom.includes('100%'))throw Error('Zoom did not change')
+  await ev("[...document.querySelectorAll('button')].find(x=>x.textContent==='Local' && x.className.includes('saker-graph-view-button'))?.click()")
+  await wait(450)
+  const local=await ev("({local:document.querySelector('.saker-graph-surface canvas')?.dataset.sakerGraphNodes,hasDepth:document.body.innerText.includes('Depth')})")
+  console.log('LOCAL',local)
+  if(!local.hasDepth)throw Error('Local graph not enabled')
+  console.log('CONSOLE_EXCEPTIONS',errors)
+  if(errors.length) throw Error(errors.slice(0,2).join(' | '))
+  ws.close()
+}
+main().catch(err=>{console.error(err);process.exitCode=1})

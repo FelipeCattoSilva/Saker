@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "Saker'nın QR kodlarını taramak için kamerayı kullanmasına izin verin.",
+    "NSLocalNetworkUsageDescription": "Saker, yerel ağınızdaki masaüstü uygulamasına bağlanır.",
+    "NSMicrophoneUsageDescription": "Saker’nın sesli dikte için mikrofonunuzu kullanmasına izin verin; konuşma bu telefonda veya eşlenmiş bilgisayarınızda yazıya dökülür.",
+    "NSPhotoLibraryAddUsageDescription": "Saker'nın oturumlarınızdaki görselleri Fotoğraflar'a kaydetmesine izin verin.",
+    "NSPhotoLibraryUsageDescription": "Saker'nın arşivinizdeki fotoğrafları eşleştirdiğiniz masaüstü bilgisayardaki bir terminal oturumuna eklemesine izin verin."
+  }
+}
